@@ -61,7 +61,7 @@ class MainActivity : AppCompatActivity() {
                 val id = cursor.getLong(fieldIndex)
                 val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                Log.d("ANDROID", "URI : " + imageUri.toString())
+                imageView.setImageURI(imageUri)
             } while (cursor.moveToNext())
         }
         cursor.close()
