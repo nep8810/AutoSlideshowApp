@@ -1,22 +1,41 @@
 package com.example.autoslideshowapp
 
 import android.Manifest
-import android.support.v7.app.AppCompatActivity
-import android.os.Bundle
+import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
+import android.os.Bundle
 import android.provider.MediaStore
-import android.content.ContentUris
+import android.support.v7.app.AppCompatActivity
+import android.view.View
+import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(){
 
     private val PERMISSIONS_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        //ID：各imageButtonにbtn1～4を割り当て
+        val btn1 =this.findViewById<Button>(R.id.imageButton1)
+        val btn2 =this.findViewById<Button>(R.id.imageButton2)
+        val btn3 =this.findViewById<Button>(R.id.imageButton3)
+
+
+        btn3.setOnClickListener(View.OnClickListener() {
+           fun onClick(v:View) {
+                getNextInfo()
+            }
+         })
+
+        btn2.setOnClickListener(View.OnClickListener() {
+            fun onClick(v: View) {
+                getPreviousInfo()
+            }
+        })
 
         // Android 6.0以降の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -54,15 +73,65 @@ class MainActivity : AppCompatActivity() {
             null // ソート (null ソートなし)
         )
 
+        //1番最初の画像を表示する
         if (cursor!!.moveToFirst()) {
-            do {
+
                 // indexからIDを取得し、そのIDから画像のURIを取得する
                 val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                 val id = cursor.getLong(fieldIndex)
                 val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
                 imageView.setImageURI(imageUri)
-            } while (cursor.moveToNext())
+        }
+        cursor.close()
+    }
+
+
+    private fun getNextInfo() {
+        val resolver = contentResolver
+        val cursor = resolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null,
+            null,
+            null,
+            null
+        )
+
+        //1つ先に進む、最後まで進んだらループする
+        if (cursor!!.moveToNext()) {
+            cursor.moveToFirst()
+
+                // indexからIDを取得し、そのIDから画像のURIを取得する
+                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                val id = cursor.getLong(fieldIndex)
+                val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                imageView.setImageURI(imageUri)
+        }
+        cursor.close()
+    }
+
+    private fun getPreviousInfo() {
+        val resolver = contentResolver
+        val cursor = resolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            null,
+            null,
+            null,
+            null
+        )
+
+
+        //1つ前に戻る、最初まで戻ったらループする
+        if (cursor!!.moveToPrevious()) {
+            cursor.moveToLast()
+
+                // indexからIDを取得し、そのIDから画像のURIを取得する
+                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                val id = cursor.getLong(fieldIndex)
+                val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                imageView.setImageURI(imageUri)
         }
         cursor.close()
     }
