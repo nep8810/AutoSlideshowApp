@@ -11,7 +11,7 @@ import android.view.View
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity(),View.OnClickListener {
 
     private val PERMISSIONS_REQUEST_CODE = 100
 
@@ -20,22 +20,10 @@ class MainActivity : AppCompatActivity(){
         setContentView(R.layout.activity_main)
 
         //ID：各imageButtonにbtn1～4を割り当て
-        val btn1 =this.findViewById<Button>(R.id.imageButton1)
-        val btn2 =this.findViewById<Button>(R.id.imageButton2)
-        val btn3 =this.findViewById<Button>(R.id.imageButton3)
+        val btn1 = this.findViewById<Button>(R.id.imageButton1)
+        val btn2 = this.findViewById<Button>(R.id.imageButton2);btn2.setOnClickListener(this)
+        val btn3 = this.findViewById<Button>(R.id.imageButton3);btn3.setOnClickListener(this)
 
-
-        btn3.setOnClickListener(View.OnClickListener() {
-           fun onClick(v:View) {
-                getNextInfo()
-            }
-         })
-
-        btn2.setOnClickListener(View.OnClickListener() {
-            fun onClick(v: View) {
-                getPreviousInfo()
-            }
-        })
 
         // Android 6.0以降の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -45,7 +33,10 @@ class MainActivity : AppCompatActivity(){
                 getContentsInfo()
             } else {
                 // 許可されていないので許可ダイアログを表示する
-                requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSIONS_REQUEST_CODE)
+                requestPermissions(
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    PERMISSIONS_REQUEST_CODE
+                )
             }
             // Android 5系以下の場合
         } else {
@@ -53,7 +44,11 @@ class MainActivity : AppCompatActivity(){
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         when (requestCode) {
             PERMISSIONS_REQUEST_CODE ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -61,6 +56,7 @@ class MainActivity : AppCompatActivity(){
                 }
         }
     }
+
 
     private fun getContentsInfo() {
         // 画像の情報を取得する
@@ -76,18 +72,20 @@ class MainActivity : AppCompatActivity(){
         //1番最初の画像を表示する
         if (cursor!!.moveToFirst()) {
 
-                // indexからIDを取得し、そのIDから画像のURIを取得する
-                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor.getLong(fieldIndex)
-                val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+            // indexからIDを取得し、そのIDから画像のURIを取得する
+            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val id = cursor.getLong(fieldIndex)
+            val imageUri =
+                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                imageView.setImageURI(imageUri)
+            imageView.setImageURI(imageUri)
         }
         cursor.close()
     }
 
 
-    private fun getNextInfo() {
+    override fun onClick(v: View) {
+
         val resolver = contentResolver
         val cursor = resolver.query(
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -97,42 +95,41 @@ class MainActivity : AppCompatActivity(){
             null
         )
 
-        //1つ先に進む、最後まで進んだらループする
-        if (cursor!!.moveToNext()) {
-            cursor.moveToFirst()
+        when(v.id) {
+
+            R.id.imageButton2 ->
+            //1つ先に進む、最後まで進んだらループする
+            if (cursor!!.moveToNext()) {
+                cursor.moveToFirst()
 
                 // indexからIDを取得し、そのIDから画像のURIを取得する
                 val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                 val id = cursor.getLong(fieldIndex)
-                val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                val imageUri =
+                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
                 imageView.setImageURI(imageUri)
+
+                cursor.close()
+            }
+
+            R.id.imageButton3 ->
+                //1つ前に戻る、最初まで戻ったらループする
+                if (cursor!!.moveToPrevious()) {
+                    cursor.moveToLast()
+
+                    // indexからIDを取得し、そのIDから画像のURIを取得する
+                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor.getLong(fieldIndex)
+                    val imageUri =
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                    imageView.setImageURI(imageUri)
+
+                    cursor.close()
+                }
         }
-        cursor.close()
     }
 
-    private fun getPreviousInfo() {
-        val resolver = contentResolver
-        val cursor = resolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            null,
-            null,
-            null,
-            null
-        )
-
-
-        //1つ前に戻る、最初まで戻ったらループする
-        if (cursor!!.moveToPrevious()) {
-            cursor.moveToLast()
-
-                // indexからIDを取得し、そのIDから画像のURIを取得する
-                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor.getLong(fieldIndex)
-                val imageUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
-                imageView.setImageURI(imageUri)
-        }
-        cursor.close()
-    }
 }
+
