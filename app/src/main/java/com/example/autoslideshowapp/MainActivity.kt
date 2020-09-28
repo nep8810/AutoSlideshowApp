@@ -19,10 +19,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //ID：各imageButtonにbtn1～4を割り当て
-        val btn1 = this.findViewById<Button>(R.id.imageButton1)
-        val btn2 = this.findViewById<Button>(R.id.imageButton2);btn2.setOnClickListener(this)
-        val btn3 = this.findViewById<Button>(R.id.imageButton3);btn3.setOnClickListener(this)
+        //ID：各Buttonに「btn」を割り当て
+        val btn1 = this.findViewById<Button>(R.id.Button1)
+        val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
+        val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
 
 
         // Android 6.0以降の場合
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
         when(v.id) {
 
-            R.id.imageButton2 ->
+            R.id.Button3 ->
             //1つ先に進む、最後まで進んだらループする
             if (cursor!!.moveToNext()) {
                 cursor.moveToFirst()
@@ -113,7 +113,7 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 cursor.close()
             }
 
-            R.id.imageButton3 ->
+            R.id.Button2 ->
                 //1つ前に戻る、最初まで戻ったらループする
                 if (cursor!!.moveToPrevious()) {
                     cursor.moveToLast()
