@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        //ID：各Buttonに「btn」を割り当て
+        //ID：各Buttonに「btn」を割り当て、setOnClickListenerを設定
         val btn1 = this.findViewById<Button>(R.id.Button1)
         val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
         val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
@@ -27,14 +27,19 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
         // Android 6.0以降の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // パーミッションの許可状態を確認する
+            // checkSelfPermissionメソッドでパーミッションの許可状態を確認する
+            //許可が与えられていればPackageManager.PERMISSION_GRANTEDが返ってくる
             if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 // 許可されている
                 getContentsInfo()
             } else {
-                // 許可されていないので許可ダイアログを表示する
+
+                // 許可されていないので、requestPermissionsメソッドを使って許可ダイアログを表示する
                 requestPermissions(
+                    //第1引数には許可を求めたいパーミッションを配列で与える
                     arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    //第2引数は結果を受け取る際に識別するための数値を与える
+                    //今回は private val PERMISSIONS_REQUEST_CODE = 100 だが、0でも10でも問題なし
                     PERMISSIONS_REQUEST_CODE
                 )
             }
@@ -44,11 +49,15 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         }
     }
 
+    //ユーザーの選択結果を受ける取るためにonRequestPermissionsResultメソッドをoverride
     override fun onRequestPermissionsResult(
+
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
+        //引数のrequestCodeはrequestPermissionsメソッドで与えた値が渡ってくる
+        //when文でrequestCodeがPERMISSIONS_REQUEST_CODE定数と一致しているか判断
         when (requestCode) {
             PERMISSIONS_REQUEST_CODE ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -58,28 +67,35 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
     }
 
 
+    //getContentsInfoメソッドでcontentResolver(ContentProviderのデータを参照するためのクラス)を使って端末内の画像の情報を取得
     private fun getContentsInfo() {
-        // 画像の情報を取得する
+
         val resolver = contentResolver
+        //contentResolverクラスのqueryメソッドを使って条件を指定して検索し、情報を取得
         val cursor = resolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, // データの種類
+
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, // 外部ストレージの画像を指定
             null, // 項目(null = 全項目)
             null, // フィルタ条件(null = フィルタなし)
             null, // フィルタ用パラメータ
             null // ソート (null ソートなし)
         )
 
-        //1番最初の画像を表示する
+        //moveToFirstメソッドでカーソルを最初に移動する
         if (cursor!!.moveToFirst()) {
 
-            // indexからIDを取得し、そのIDから画像のURIを取得する
+            // cursor.getColumnIndexメソッドで現在カーソルが指しているデータの中から画像のIDがセットされている位置を取得する
             val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            //cursor.getLongメソッドで画像のIDを取得する
             val id = cursor.getLong(fieldIndex)
+            // ContentUris.withAppendedIdメソッドでそこから実際の画像のURIを取得する
             val imageUri =
                 ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
+            //imageViewのsetImageURIメソッドでURIが指している画像ファイルをImageViewに表示させる
             imageView.setImageURI(imageUri)
         }
+        //カーソルを使い終えたためcloseメソッドを呼び出す
         cursor.close()
     }
 
@@ -98,11 +114,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         when(v.id) {
 
             R.id.Button3 ->
-            //1つ先に進む、最後まで進んだらループする
-            if (cursor!!.moveToNext()) {
-                cursor.moveToFirst()
 
-                // indexからIDを取得し、そのIDから画像のURIを取得する
+                //moveToNextメソッドでカーソルを次の画像に移動する(カーソルが1~(n-1)にある場合)
+            if (cursor!!.moveToNext()) {
+
                 val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                 val id = cursor.getLong(fieldIndex)
                 val imageUri =
@@ -110,15 +125,25 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
                 imageView.setImageURI(imageUri)
 
-                cursor.close()
+
+            }else {
+                //nから次の画像に移動できなかった場合moveToFirstメソッドで1に戻す
+                cursor.moveToFirst()
+
+                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                val id = cursor.getLong(fieldIndex)
+                val imageUri =
+                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                imageView.setImageURI(imageUri)
             }
 
-            R.id.Button2 ->
-                //1つ前に戻る、最初まで戻ったらループする
-                if (cursor!!.moveToPrevious()) {
-                    cursor.moveToLast()
 
-                    // indexからIDを取得し、そのIDから画像のURIを取得する
+            R.id.Button2 ->
+
+                //moveToPreviousメソッドでカーソルを前の画像に移動する(カーソルが2~nにある場合)
+                if (cursor!!.moveToPrevious()) {
+
                     val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
                     val id = cursor.getLong(fieldIndex)
                     val imageUri =
@@ -126,9 +151,20 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
                     imageView.setImageURI(imageUri)
 
-                    cursor.close()
+                }else {
+                    //1から前の画像に移動できなかった場合moveToLastメソッドでnに戻す
+                    cursor.moveToLast()
+
+                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor.getLong(fieldIndex)
+                    val imageUri =
+                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                    imageView.setImageURI(imageUri)
                 }
+
         }
+        cursor.close()
     }
 
 }
