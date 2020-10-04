@@ -3,6 +3,7 @@ package com.example.autoslideshowapp
 import android.Manifest
 import android.content.ContentUris
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -14,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 class MainActivity : AppCompatActivity(),View.OnClickListener {
 
     private val PERMISSIONS_REQUEST_CODE = 100
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,13 +68,15 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         }
     }
 
+    var cursor: Cursor? = null //cursorをメンバ変数として定義し、nullで初期化
 
     //getContentsInfoメソッドでcontentResolver(ContentProviderのデータを参照するためのクラス)を使って端末内の画像の情報を取得
     private fun getContentsInfo() {
 
-        val resolver = contentResolver
         //contentResolverクラスのqueryメソッドを使って条件を指定して検索し、情報を取得
-        val cursor = resolver.query(
+        var resolver = contentResolver
+        cursor = resolver.query(  //resolverからcursorを取得
+
 
             MediaStore.Images.Media.EXTERNAL_CONTENT_URI, // 外部ストレージの画像を指定
             null, // 項目(null = 全項目)
@@ -81,13 +85,14 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
             null // ソート (null ソートなし)
         )
 
+
         //moveToFirstメソッドでカーソルを最初に移動する
         if (cursor!!.moveToFirst()) {
 
             // cursor.getColumnIndexメソッドで現在カーソルが指しているデータの中から画像のIDがセットされている位置を取得する
-            val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
+            val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
             //cursor.getLongメソッドで画像のIDを取得する
-            val id = cursor.getLong(fieldIndex)
+            val id = cursor!!.getLong(fieldIndex)
             // ContentUris.withAppendedIdメソッドでそこから実際の画像のURIを取得する
             val imageUri =
                 ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
@@ -95,21 +100,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
             //imageViewのsetImageURIメソッドでURIが指している画像ファイルをImageViewに表示させる
             imageView.setImageURI(imageUri)
         }
-        //カーソルを使い終えたためcloseメソッドを呼び出す
-        cursor.close()
     }
 
 
     override fun onClick(v: View) {
-
-        val resolver = contentResolver
-        val cursor = resolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            null,
-            null,
-            null,
-            null
-        )
 
         when(v.id) {
 
@@ -118,8 +112,8 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 //moveToNextメソッドでカーソルを次の画像に移動する(カーソルが1~(n-1)にある場合)
             if (cursor!!.moveToNext()) {
 
-                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor.getLong(fieldIndex)
+                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                val id = cursor!!.getLong(fieldIndex)
                 val imageUri =
                     ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
@@ -128,10 +122,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
             }else {
                 //nから次の画像に移動できなかった場合moveToFirstメソッドで1に戻す
-                cursor.moveToFirst()
+                cursor!!.moveToFirst()
 
-                val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor.getLong(fieldIndex)
+                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                val id = cursor!!.getLong(fieldIndex)
                 val imageUri =
                     ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
@@ -144,8 +138,8 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 //moveToPreviousメソッドでカーソルを前の画像に移動する(カーソルが2~nにある場合)
                 if (cursor!!.moveToPrevious()) {
 
-                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor.getLong(fieldIndex)
+                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor!!.getLong(fieldIndex)
                     val imageUri =
                         ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
@@ -153,10 +147,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
                 }else {
                     //1から前の画像に移動できなかった場合moveToLastメソッドでnに戻す
-                    cursor.moveToLast()
+                    cursor!!.moveToLast()
 
-                    val fieldIndex = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor.getLong(fieldIndex)
+                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                    val id = cursor!!.getLong(fieldIndex)
                     val imageUri =
                         ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
@@ -164,8 +158,13 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 }
 
         }
-        cursor.close()
+
     }
 
+    override fun onStop() {
+        super.onStop()
+        //カーソルを使い終えたためcloseメソッドを呼び出す
+        cursor!!.close()
+    }
 }
 
