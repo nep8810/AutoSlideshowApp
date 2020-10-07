@@ -6,11 +6,13 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_main.*
+import java.util.*
 
 class MainActivity : AppCompatActivity(),View.OnClickListener {
 
@@ -22,10 +24,10 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         setContentView(R.layout.activity_main)
 
         //ID：各Buttonに「btn」を割り当て、setOnClickListenerを設定
-        val btn1 = this.findViewById<Button>(R.id.Button1)
+        val btn1 = this.findViewById<Button>(R.id.Button1);btn1.setOnClickListener(this)
         val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
         val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
-
+        val btn4 = this.findViewById<Button>(R.id.Button4);btn4.setOnClickListener(this)
 
         // Android 6.0以降の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -102,10 +104,60 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         }
     }
 
+    private var mTimer: Timer? = null
+    // タイマー用の時間のための変数
+    private var mTimerSec = 0.0
+    private var mHandler = Handler()
 
     override fun onClick(v: View) {
 
         when(v.id) {
+
+            R.id.Button1 ->
+
+                if (mTimer == null) {
+                        // タイマーの作成
+                        mTimer = Timer()
+
+                        // mTimer.schedule()でタイマー始動,アプリが終了するまでrun()内のコードを実行
+                        mTimer!!.schedule(object : TimerTask() {  //サブスレッド開始
+
+                            override fun run() {
+
+                                mTimerSec += 0.1
+
+                                if (cursor!!.moveToNext()) {
+
+                                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                                val id = cursor!!.getLong(fieldIndex)
+                                val imageUri =
+                                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                                //mHndlerはHandlerクラスのインスタンスで、スレッドを超えて依頼するために使用する(今回はサブ→メイン)
+                                //mHandler.post()内の処理はUI描画なので、メインスレッドに依頼する必要あり
+                                mHandler.post {
+                                    timer.text = String.format("%.1f", mTimerSec)
+                                    imageView.setImageURI(imageUri) //setImageURIメソッドで画像ファイルをImageViewに表示させるのはUI描画
+                                }
+
+                            }else {
+                                    cursor!!.moveToFirst()
+
+                                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                                    val id = cursor!!.getLong(fieldIndex)
+                                    val imageUri =
+                                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                                    mHandler.post {
+                                        timer.text = String.format("%.1f", mTimerSec)
+                                        imageView.setImageURI(imageUri)
+                                    }
+                                }
+                            }
+                        }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定　//サブスレッド終了
+
+                }
+
 
             R.id.Button3 ->
 
@@ -157,9 +209,18 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                     imageView.setImageURI(imageUri)
                 }
 
+            R.id.Button4 ->
+
+                if (mTimer != null){
+                    mTimer!!.cancel()
+                    mTimer = null
+                }
+
+
         }
 
     }
+
 
     override fun onStop() {
         super.onStop()
