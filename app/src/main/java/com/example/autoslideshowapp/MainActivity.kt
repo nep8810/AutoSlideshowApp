@@ -1,6 +1,7 @@
 package com.example.autoslideshowapp
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.ContentUris
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -27,29 +28,33 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         val btn1 = this.findViewById<Button>(R.id.Button1);btn1.setOnClickListener(this)
         val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
         val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
+        val btn4 = this.findViewById<Button>(R.id.Button4);btn4.setOnClickListener(this)
 
-        // Android 6.0以降の場合
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // checkSelfPermissionメソッドでパーミッションの許可状態を確認する
-            //許可が与えられていればPackageManager.PERMISSION_GRANTEDが返ってくる
-            if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                // 許可されている
-                getContentsInfo()
+
+            // Android 6.0以降の場合
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // checkSelfPermissionメソッドでパーミッションの許可状態を確認する
+                //許可が与えられていればPackageManager.PERMISSION_GRANTEDが返ってくる
+                if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    // 許可されている
+                    getContentsInfo()
+                } else {
+
+                    // 許可されていないので、requestPermissionsメソッドを使って許可ダイアログを表示する
+                    requestPermissions(
+                        //第1引数には許可を求めたいパーミッションを配列で与える
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        //第2引数は結果を受け取る際に識別するための数値を与える
+                        //今回は private val PERMISSIONS_REQUEST_CODE = 100 だが、0でも10でも問題なし
+                        PERMISSIONS_REQUEST_CODE
+                    )
+                }
+                // Android 5系以下の場合
             } else {
-
-                // 許可されていないので、requestPermissionsメソッドを使って許可ダイアログを表示する
-                requestPermissions(
-                    //第1引数には許可を求めたいパーミッションを配列で与える
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    //第2引数は結果を受け取る際に識別するための数値を与える
-                    //今回は private val PERMISSIONS_REQUEST_CODE = 100 だが、0でも10でも問題なし
-                    PERMISSIONS_REQUEST_CODE
-                )
+                getContentsInfo()
             }
-            // Android 5系以下の場合
-        } else {
-            getContentsInfo()
-        }
+
+
     }
 
     //ユーザーの選択結果を受ける取るためにonRequestPermissionsResultメソッドをoverride
@@ -67,6 +72,27 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                     getContentsInfo()
                 }
         }
+    }
+
+    private fun showAlertDialog() {
+        // AlertDialog.Builderクラスを使ってAlertDialogの準備をする
+        val alertDialogBuilder = AlertDialog.Builder(this)
+        alertDialogBuilder.setTitle("AutoSlideshowApp")
+        alertDialogBuilder.setMessage("機器上の写真、メディア、ファイルへのアクセスを許可しますか？")
+
+        // 肯定ボタンに表示される文字列、押したときのリスナーを設定する
+        alertDialogBuilder.setPositiveButton("許可する"){dialog, which ->
+            closeContextMenu()
+        }
+
+        // 否定ボタンに表示される文字列、押したときのリスナーを設定する
+        alertDialogBuilder.setNegativeButton("許可しない"){_,_ ->
+            closeContextMenu()
+        }
+
+        // AlertDialogを作成して表示する
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
     }
 
     var cursor: Cursor? = null //cursorをメンバ変数として定義し、nullで初期化
@@ -111,6 +137,9 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
     override fun onClick(v: View) {
 
         when(v.id) {
+
+            //PermissionボタンをタップするとshoeAlertDialogを表示
+            R.id.Button4 -> showAlertDialog()
 
             R.id.Button1 -> {
 
@@ -163,7 +192,12 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                         }
                     }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定　//サブスレッド終了
 
+                    //setText()でButtonの表示をstrings.xmlのlabelに変更
                     Button1.setText(R.string.label2)
+
+                    // クリック無効化＆文字グレー化
+                    Button2.isEnabled = false
+                    Button3.isEnabled = false
 
                 } else {
 
@@ -172,6 +206,9 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                         mTimer = null
 
                     Button1.setText(R.string.label1)
+
+                    Button2.isEnabled = true
+                    Button3.isEnabled = true
                 }
             }
 
