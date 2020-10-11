@@ -27,7 +27,6 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         val btn1 = this.findViewById<Button>(R.id.Button1);btn1.setOnClickListener(this)
         val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
         val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
-        val btn4 = this.findViewById<Button>(R.id.Button4);btn4.setOnClickListener(this)
 
         // Android 6.0以降の場合
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -113,25 +112,29 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
         when(v.id) {
 
-            R.id.Button1 ->
+            R.id.Button1 -> {
 
                 if (mTimer == null) {
-                        // タイマーの作成
-                        mTimer = Timer()
+                    // タイマーの作成
+                    mTimer = Timer()
 
-                        // mTimer.schedule()でタイマー始動,アプリが終了するまでrun()内のコードを実行
-                        mTimer!!.schedule(object : TimerTask() {  //サブスレッド開始
+                    // mTimer.schedule()でタイマー始動,アプリが終了するまでrun()内のコードを実行
+                    mTimer!!.schedule(object : TimerTask() {  //サブスレッド開始
 
-                            override fun run() {
+                        override fun run() {
 
-                                mTimerSec += 0.1
+                            mTimerSec += 0.1
 
-                                if (cursor!!.moveToNext()) {
+                            if (cursor!!.moveToNext()) {
 
-                                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                                val fieldIndex =
+                                    cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
                                 val id = cursor!!.getLong(fieldIndex)
                                 val imageUri =
-                                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                                    ContentUris.withAppendedId(
+                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                        id
+                                    )
 
                                 //mHndlerはHandlerクラスのインスタンスで、スレッドを超えて依頼するために使用する(今回はサブ→メイン)
                                 //mHandler.post()内の処理はUI描画なので、メインスレッドに依頼する必要あり
@@ -140,87 +143,91 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                                     imageView.setImageURI(imageUri) //setImageURIメソッドで画像ファイルをImageViewに表示させるのはUI描画
                                 }
 
-                            }else {
-                                    cursor!!.moveToFirst()
+                            } else {
+                                cursor!!.moveToFirst()
 
-                                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
-                                    val id = cursor!!.getLong(fieldIndex)
-                                    val imageUri =
-                                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                                val fieldIndex =
+                                    cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                                val id = cursor!!.getLong(fieldIndex)
+                                val imageUri =
+                                    ContentUris.withAppendedId(
+                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                        id
+                                    )
 
-                                    mHandler.post {
-                                        timer.text = String.format("%.1f", mTimerSec)
-                                        imageView.setImageURI(imageUri)
-                                    }
+                                mHandler.post {
+                                    timer.text = String.format("%.1f", mTimerSec)
+                                    imageView.setImageURI(imageUri)
                                 }
                             }
-                        }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定　//サブスレッド終了
+                        }
+                    }, 2000, 2000) // 最初に始動させるまで 2000ミリ秒、ループの間隔を 2000ミリ秒 に設定　//サブスレッド終了
 
+                    Button1.setText(R.string.label2)
+
+                } else {
+
+                        mTimer != null
+                        mTimer!!.cancel()
+                        mTimer = null
+
+                    Button1.setText(R.string.label1)
                 }
-
-
-            R.id.Button3 ->
-
-                //moveToNextメソッドでカーソルを次の画像に移動する(カーソルが1~(n-1)にある場合)
-            if (cursor!!.moveToNext()) {
-
-                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor!!.getLong(fieldIndex)
-                val imageUri =
-                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
-                imageView.setImageURI(imageUri)
-
-
-            }else {
-                //nから次の画像に移動できなかった場合moveToFirstメソッドで1に戻す
-                cursor!!.moveToFirst()
-
-                val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
-                val id = cursor!!.getLong(fieldIndex)
-                val imageUri =
-                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-
-                imageView.setImageURI(imageUri)
             }
 
+                        R.id.Button3 ->
 
-            R.id.Button2 ->
+                        //moveToNextメソッドでカーソルを次の画像に移動する(カーソルが1~(n-1)にある場合)
+                        if (cursor!!.moveToNext()) {
 
-                //moveToPreviousメソッドでカーソルを前の画像に移動する(カーソルが2~nにある場合)
-                if (cursor!!.moveToPrevious()) {
+                            val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor!!.getLong(fieldIndex)
+                            val imageUri =
+                                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor!!.getLong(fieldIndex)
-                    val imageUri =
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                            imageView.setImageURI(imageUri)
 
-                    imageView.setImageURI(imageUri)
 
-                }else {
-                    //1から前の画像に移動できなかった場合moveToLastメソッドでnに戻す
-                    cursor!!.moveToLast()
+                        }else {
+                            //nから次の画像に移動できなかった場合moveToFirstメソッドで1に戻す
+                            cursor!!.moveToFirst()
 
-                    val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
-                    val id = cursor!!.getLong(fieldIndex)
-                    val imageUri =
-                        ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                            val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor!!.getLong(fieldIndex)
+                            val imageUri =
+                                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
 
-                    imageView.setImageURI(imageUri)
-                }
+                            imageView.setImageURI(imageUri)
+                        }
 
-            R.id.Button4 ->
 
-                if (mTimer != null){
-                    mTimer!!.cancel()
-                    mTimer = null
-                }
+                        R.id.Button2 ->
 
+                        //moveToPreviousメソッドでカーソルを前の画像に移動する(カーソルが2~nにある場合)
+                        if (cursor!!.moveToPrevious()) {
+
+                            val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor!!.getLong(fieldIndex)
+                            val imageUri =
+                                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                            imageView.setImageURI(imageUri)
+
+                        }else {
+                            //1から前の画像に移動できなかった場合moveToLastメソッドでnに戻す
+                            cursor!!.moveToLast()
+
+                            val fieldIndex = cursor!!.getColumnIndex(MediaStore.Images.Media._ID)
+                            val id = cursor!!.getLong(fieldIndex)
+                            val imageUri =
+                                ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+
+                            imageView.setImageURI(imageUri)
+                        }
 
         }
 
     }
-
 
     override fun onStop() {
         super.onStop()
