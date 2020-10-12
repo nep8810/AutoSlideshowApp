@@ -12,7 +12,6 @@ import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Button
-import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
@@ -29,18 +28,15 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         val btn1 = this.findViewById<Button>(R.id.Button1);btn1.setOnClickListener(this)
         val btn2 = this.findViewById<Button>(R.id.Button2);btn2.setOnClickListener(this)
         val btn3 = this.findViewById<Button>(R.id.Button3);btn3.setOnClickListener(this)
-        val btn4 = this.findViewById<Button>(R.id.Button4);btn4.setOnClickListener(this)
 
-    }
 
-    private fun showAlertDialog() {
         // AlertDialog.Builderクラスを使ってAlertDialogの準備をする
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setTitle("AutoSlideshowApp")
         alertDialogBuilder.setMessage("機器上の写真、メディア、ファイルへのアクセスを許可しますか？")
 
         // 肯定ボタンに表示される文字列、押したときのリスナーを設定する
-        alertDialogBuilder.setPositiveButton("許可する"){dialog, which ->
+        alertDialogBuilder.setPositiveButton("許可する") { dialog, which ->
             // Android 6.0以降の場合
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 // checkSelfPermissionメソッドでパーミッションの許可状態を確認する
@@ -67,9 +63,8 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         }
 
         // 否定ボタンに表示される文字列、押したときのリスナーを設定する
-        alertDialogBuilder.setNegativeButton("許可しない"){_,_ ->
-            Toast.makeText(applicationContext, "アプリを終了します。", Toast.LENGTH_SHORT).show()
-            finish()
+        alertDialogBuilder.setNegativeButton("許可しない") { _, _ ->
+            closeContextMenu()
         }
 
         // AlertDialogを作成して表示する
@@ -119,9 +114,6 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
     override fun onClick(v: View) {
 
         when(v.id) {
-
-            //PermissionボタンをタップするとshoeAlertDialogを表示
-            R.id.Button4 -> showAlertDialog()
 
             R.id.Button1 -> {
 
