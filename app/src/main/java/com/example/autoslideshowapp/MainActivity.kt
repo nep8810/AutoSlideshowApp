@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
         alertDialogBuilder.setTitle("AutoSlideshowApp")
         alertDialogBuilder.setMessage("機器上の写真、メディア、ファイルへのアクセスを許可しますか？")
 
+
         // 肯定ボタンに表示される文字列、押したときのリスナーを設定する
         alertDialogBuilder.setPositiveButton("許可する") { dialog, which ->
             // Android 6.0以降の場合
@@ -64,13 +65,31 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
 
         // 否定ボタンに表示される文字列、押したときのリスナーを設定する
         alertDialogBuilder.setNegativeButton("許可しない") { _, _ ->
-            closeContextMenu()
+            // クリック無効化＆文字グレー化
+            Button1.isEnabled = false
+            Button2.isEnabled = false
+            Button3.isEnabled = false
         }
 
         // AlertDialogを作成して表示する
         val alertDialog = alertDialogBuilder.create()
         alertDialog.show()
     }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            PERMISSIONS_REQUEST_CODE ->
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    getContentsInfo()
+                } else {
+                    // クリック無効化＆文字グレー化
+                    Button1.isEnabled = false
+                    Button2.isEnabled = false
+                    Button3.isEnabled = false
+                }
+        }
+    }
+
 
     var cursor: Cursor? = null //cursorをメンバ変数として定義し、nullで初期化
 
