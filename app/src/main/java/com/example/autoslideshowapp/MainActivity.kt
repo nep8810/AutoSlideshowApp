@@ -3,8 +3,10 @@ package com.example.autoslideshowapp
 import android.Manifest
 import android.app.AlertDialog
 import android.content.ContentUris
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -82,10 +84,14 @@ class MainActivity : AppCompatActivity(),View.OnClickListener {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getContentsInfo()
                 } else {
-                    // クリック無効化＆文字グレー化
-                    Button1.isEnabled = false
-                    Button2.isEnabled = false
-                    Button3.isEnabled = false
+                    // システムのアプリ設定画面
+                    val intent = Intent(
+                        android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + this.packageName)
+                    )
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    this.startActivity(intent)
+
                 }
         }
     }
